@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         github_highlight_matches
 // @version      0.1
-// @description  Highlight matches of selected word on Github
+// @description  Highlight all matches of the clicked on word in the Github code viewer
 // @include      https://github.com/*
 // @copyright    2014, Chin
 // @run-at       document-end
