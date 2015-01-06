@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         github_highlight_matches
-// @version      0.1
+// @version      0.2
 // @description  Highlight all matches of the clicked on word in the Github code viewer
 // @include      https://github.com/*
 // @copyright    2014, Chin
@@ -38,11 +38,56 @@ function highlightMatch() {
         t = t.replace(/[^\w\s]/gi, '').trim();
         s.modify('move', 'forward', 'character'); //clear selection
         
-        // this span with colored background will be used to replace the text
-        var newSpan = "<span class='match_highlighted' style ='background-color: rgba(253, 255, 0, 0.28)'>" + t + "</span>";
-        codeContent.innerHTML = codeContent.innerHTML.replace(new RegExp(escapeRegExp(t), 'g'), newSpan);
-        console.log(t);
+        var n, allTextNodes = [], walk = document.createTreeWalker(codeContent, NodeFilter.SHOW_TEXT, null, false);
+        while (n = walk.nextNode()) {
+            allTextNodes.push(n);
+        }
+        
+        for (var i = 0; i < allTextNodes.length; i++) {
+            var n = allTextNodes[i];
+            var replaceNodes = processTextNode(n, t);
+            var parentNode = n.parentNode;
+            parentNode.replaceChild(replaceNodes[replaceNodes.length - 1], n);
+            var referenceElement = replaceNodes[replaceNodes.length - 1];
+            for (var k = 0; k < replaceNodes.length - 1; k++) {
+                parentNode.insertBefore(replaceNodes[k], referenceElement);
+            }
+        }
+        
+        codeContent.normalize();
+        
+        console.log("\"" + t + "\"");
     }
+}
+
+function processTextNode(textNode, toFind) {
+    var text = textNode.textContent;
+    var nodes = [];
+    var indexLeft = text.indexOf(toFind); 
+    if (indexLeft != -1) {
+        if (indexLeft > 0) {
+            // process left node
+            var leftText = text.substring(0, indexLeft);
+            nodes.push(document.createTextNode(leftText));
+        }
+        
+        var span = document.createElement('span');
+        span.innerHTML = toFind;
+        span.className = "match_highlighted";
+        span.style.backgroundColor = "rgba(253, 255, 0, 0.28)";
+        nodes.push(span);
+        
+        if (indexLeft + toFind.length < text.length) {
+            // todo: process the right part properly
+            var rightText = text.substring(indexLeft + toFind.length);
+            nodes.push(document.createTextNode(rightText));
+        }
+    }
+    else {
+        nodes.push(textNode);
+    }
+    
+    return nodes;
 }
 
 /**
