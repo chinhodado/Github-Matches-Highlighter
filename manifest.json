@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+
+  "name": "Github Matches Highlighter",
+  "description": "Highlight all matches of the clicked on word in the Github code viewer.",
+  "version": "0.3",
+
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "run_at": "document_end",
+      "js": ["jquery.min.js", "script.js"]
+    }
+  ]
+}
